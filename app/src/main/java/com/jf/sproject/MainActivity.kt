@@ -1,6 +1,7 @@
 package com.jf.sproject
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
@@ -116,18 +117,24 @@ class MainActivity : AppCompatActivity() {
 
 
         db = WordDatabase.getDatabase(applicationContext)
-        AsyncTask.execute {
+
+
+        val pref: SharedPreferences =
+            applicationContext.getSharedPreferences("PREF_NAME", Context.MODE_PRIVATE)
+        val prefSpeed  = pref.getInt("SPEED", -1)
+
+        val prefWords  = pref.getInt("WORD_COUNT", -1)
+
+        AsyncTask.execute() {
             correct_answer = newWordDX()
         }
-
-
-
+        Log.e("spref:", "correct answer: ${correct_answer}")
+        Log.e("spref:", "answer: ${prefSpeed},   ${prefWords}")
 
         tv_answer.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable) {
                 if (s.toString() == correct_answer){
-                    tv_answer.setText("")
-                    AsyncTask.execute {
+                    AsyncTask.execute() {
                         correct_answer = newWordDX()
                     }
                 }
@@ -146,23 +153,25 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun newWord(): String{
+    fun newWord(): String {
 
         val jc_challengeWord = createJWord(chars, (2..4).random())
 
         tv_challengeWord.text = jc_challengeWord.Hiragana
-        Log.e("hi:", "answer: ${ jc_challengeWord.Romaji}")
+        Log.e("theword:", "answer: ${jc_challengeWord.Romaji}")
         return jc_challengeWord.Romaji
     }
-
     fun newWordDX(): String{
-        val challengeWord = db.wordDao().getRandomWord().split(',').get(0)
+        tv_answer.setText("")
+        var challengeWord = ""
+        var challengeWordEnglish=""
+        challengeWord = db.wordDao().getRandomWord().reading!!.split(',').get(0)
 
         tv_challengeWord.text = challengeWord
 
-        //todo: convert to to romaji
-        Log.e("hi:", "answer: ${ challengeWord}")
-        var challengeWordEnglish=""
+        //convert to to romaji
+        Log.e("hi:", "challengeword: ${ challengeWord}")
+
         for(i in challengeWord.indices){
             var character = challengeWord[i]
             var character2 = ""
@@ -185,6 +194,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         Log.e("hi:", "answer: ${ challengeWordEnglish}")
+
         return challengeWordEnglish
     }
 }
